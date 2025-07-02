@@ -45,7 +45,8 @@ pip install -r requirements.txt
 
 ```
 requests
-beautifulsoup4\pyyaml
+beautifulsoup4
+pyyaml
 ```
 
 ---
