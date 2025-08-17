@@ -20,14 +20,14 @@ with open("config.yaml", "r") as f:
     config = yaml.safe_load(f)
 
 # --- User configuration: exact URLs to check ---
-URLS = config.get("urls", [])
+URLS = config.get("URLS", [])
 # Example:
 # urls:
 #   - https://grandtrain.ru/search/2078950-2000003/30.06.2025/028С/
 
-BOT_TOKEN = config["bot_token"]
+BOT_TOKEN = config["BOT_TOKEN"]
 # Example: bot_token: 1234567:secret_token_here
-CHAT_IDS = config.get("chat_ids", [])
+CHAT_IDS = config.get("CHAT_IDS", [])
 # Example:
 # chat_ids:
 #   - 123456890
@@ -107,8 +107,8 @@ def parse_train_details(html):
             seats_text = seats_span.get_text(strip=True) if seats_span else ""
         logging.info(seats_text)
         # **NEW**: skip any upper-seat listing ("верхние", "верхних", etc.)
-        if "верх" in seats_text.lower():
-            continue
+        # if "верх" in seats_text.lower():
+        #    continue
 
         classes.append({"type": car_type, "wagons": wagons, "seats": seats_text})
     return classes
