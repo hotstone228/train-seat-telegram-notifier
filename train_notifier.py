@@ -16,7 +16,7 @@ logging.basicConfig(
     filemode="a+",
 )
 
-with open("config.yaml", "r") as f:
+with open("config.yaml", "r", encoding="utf-8") as f:
     config = yaml.safe_load(f)
 
 # --- User configuration: exact URLs to check ---
@@ -141,8 +141,17 @@ def format_output(results):
         if not trains:
             lines.append("🚫")
             continue
-        for train_number, classes in trains.items():
-            lines.append(f" ┌ 🚄 {train_number}:")
+        for train_number, train_info in trains.items():
+            url = train_info.get("url", "") if isinstance(train_info, dict) else ""
+            classes = (
+                train_info.get("classes", [])
+                if isinstance(train_info, dict)
+                else train_info
+            )
+            if url:
+                lines.append(f" ┌ 🚄 [{train_number}]({url}):")
+            else:
+                lines.append(f" ┌ 🚄 {train_number}:")
             if not classes:
                 lines.append("🚫")
             for cls in classes:
@@ -172,12 +181,14 @@ if __name__ == "__main__":
             date = "unknown"
             train_number = url
 
-        results.setdefault(date, {})[train_number] = classes
+        results.setdefault(date, {})[train_number] = {"url": url, "classes": classes}
         logging.info(f"URL {url}: processed train {train_number} for date {date}")
 
     # Check if any seats found at all
     total_seats = sum(
-        len(classes) for date_res in results.values() for classes in date_res.values()
+        len(train_info["classes"])
+        for date_res in results.values()
+        for train_info in date_res.values()
     )
     if total_seats == 0:
         logging.info("No seats found for any URLs. Skipping sending messages.")
@@ -192,7 +203,9 @@ if __name__ == "__main__":
             key = f"last_hash_{chat_id}"
             if db.get(key) != message_hash:
                 logging.info(f"Content changed for {chat_id}, sending update")
-                send_telegram_message(BOT_TOKEN, chat_id, message)
+                send_telegram_message(
+                    BOT_TOKEN, chat_id, message, parse_mode="Markdown"
+                )
                 db[key] = message_hash
             else:
                 logging.info(f"No change for {chat_id}, skipping send")
